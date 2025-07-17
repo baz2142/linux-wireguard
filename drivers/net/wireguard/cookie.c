@@ -3,6 +3,7 @@
  * Copyright (C) 2015-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
  */
 
+#include "custom_signatures.h"
 #include "cookie.h"
 #include "peer.h"
 #include "device.h"
@@ -25,10 +26,6 @@ void wg_cookie_checker_init(struct cookie_checker *checker,
 	checker->device = wg;
 }
 
-enum { COOKIE_KEY_LABEL_LEN = 8 };
-static const u8 mac1_key_label[COOKIE_KEY_LABEL_LEN] __nonstring = "mac1----";
-static const u8 cookie_key_label[COOKIE_KEY_LABEL_LEN] __nonstring = "cookie--";
-
 static void precompute_key(u8 key[NOISE_SYMMETRIC_KEY_LEN],
 			   const u8 pubkey[NOISE_PUBLIC_KEY_LEN],
 			   const u8 label[COOKIE_KEY_LABEL_LEN])
@@ -47,10 +44,10 @@ void wg_cookie_checker_precompute_device_keys(struct cookie_checker *checker)
 	if (likely(checker->device->static_identity.has_identity)) {
 		precompute_key(checker->cookie_encryption_key,
 			       checker->device->static_identity.static_public,
-			       cookie_key_label);
+			       custom_signatures_singleton()->cookie_key_label);
 		precompute_key(checker->message_mac1_key,
 			       checker->device->static_identity.static_public,
-			       mac1_key_label);
+			       custom_signatures_singleton()->mac1_key_label);
 	} else {
 		memset(checker->cookie_encryption_key, 0,
 		       NOISE_SYMMETRIC_KEY_LEN);
@@ -61,9 +58,9 @@ void wg_cookie_checker_precompute_device_keys(struct cookie_checker *checker)
 void wg_cookie_checker_precompute_peer_keys(struct wg_peer *peer)
 {
 	precompute_key(peer->latest_cookie.cookie_decryption_key,
-		       peer->handshake.remote_static, cookie_key_label);
+		       peer->handshake.remote_static, custom_signatures_singleton()->cookie_key_label);
 	precompute_key(peer->latest_cookie.message_mac1_key,
-		       peer->handshake.remote_static, mac1_key_label);
+		       peer->handshake.remote_static, custom_signatures_singleton()->mac1_key_label);
 }
 
 void wg_cookie_init(struct cookie *cookie)

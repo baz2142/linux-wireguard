@@ -3,6 +3,7 @@
  * Copyright (C) 2015-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
  */
 
+#include "custom_signatures.h"
 #include "noise.h"
 #include "device.h"
 #include "peer.h"
@@ -25,8 +26,6 @@
  * <- e, ee, se, psk, {}
  */
 
-static const u8 handshake_name[37] __nonstring = "Noise_IKpsk2_25519_ChaChaPoly_BLAKE2s";
-static const u8 identifier_name[34] __nonstring = "WireGuard v1 zx2c4 Jason@zx2c4.com";
 static u8 handshake_init_hash[NOISE_HASH_LEN] __ro_after_init;
 static u8 handshake_init_chaining_key[NOISE_HASH_LEN] __ro_after_init;
 static atomic64_t keypair_counter = ATOMIC64_INIT(0);
@@ -35,11 +34,11 @@ void __init wg_noise_init(void)
 {
 	struct blake2s_state blake;
 
-	blake2s(handshake_init_chaining_key, handshake_name, NULL,
-		NOISE_HASH_LEN, sizeof(handshake_name), 0);
+	blake2s(handshake_init_chaining_key, custom_signatures_singleton()->handshake_name, NULL,
+		NOISE_HASH_LEN, sizeof(custom_signatures_singleton()->handshake_name), 0);
 	blake2s_init(&blake, NOISE_HASH_LEN);
 	blake2s_update(&blake, handshake_init_chaining_key, NOISE_HASH_LEN);
-	blake2s_update(&blake, identifier_name, sizeof(identifier_name));
+	blake2s_update(&blake, custom_signatures_singleton()->identifier_name, sizeof(custom_signatures_singleton()->identifier_name));
 	blake2s_final(&blake, handshake_init_hash);
 }
 

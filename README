@@ -1,18 +1,32 @@
-Linux kernel
+ObfuGuard
 ============
 
-There are several guides for kernel developers and users. These guides can
-be rendered in a number of formats, like HTML and PDF. Please read
-Documentation/admin-guide/README.rst first.
+It's a fork of the original WireGuard, which adds a fearture
+to pass a module parameter, which will be used to generate
+random protocol messages' signatures
 
-In order to build the documentation, use ``make htmldocs`` or
-``make pdfdocs``.  The formatted documentation can also be read online at:
+It's convinient to use the script `rebuildObfuguard.sh` from the source tree,
+which gets only protocol's source, builds it and inserts it into the system.
 
-    https://www.kernel.org/doc/html/latest/
+HOW TO BUILD
+==============
 
-There are various text files in the Documentation/ subdirectory,
-several of them using the reStructuredText markup notation.
+`make -C /lib/modules/$(uname -r)/build M=./obfuguard_src/drivers/net/wireguard modules`
 
-Please read the Documentation/process/changes.rst file, as it contains the
-requirements for building and running the kernel, and information about
-the problems which may result by upgrading your kernel.
+Then we need to remove the original WireGuard from the kernel, if you have it:
+`rmmod wireguard | echo "The module wasn't loadeded..."`
+
+Then we can insert it into the kernel with your own phrase to generate custom signatures
+`insmod $(pwd)/$REPO_DIR_NAME/$DRIVER_DIR/wireguard.ko phrase="$YOUR_OBFU_PHRASE"`
+
+dmesg will show you your obfuscate phrase and messages' signatures, which has been generated,
+based on your phrase:
+
+[46911.355581] wireguard: The module is loaded, using the obfuscate phrase: 1234567890
+[46911.355582] wireguard: custom_signatures:
+[46911.355583] wireguard: cookie_key_label[8]: 486C3277
+[46911.355584] wireguard: handshake_name[37]: 0CF01E6B2985853D8FC74EB35FFDEB573BB4A
+[46911.355585] wireguard: identifier_name[34]: A49928EFA2950F6BB8E4AD2D1F8D4BCD9F
+[46911.355586] wireguard: mac1_key_label[8]: 41C887CC
+[46911.355586] wireguard: wg_crypt[8]: 49B68C75
+[46911.355587] wireguard: wg_kex[6]: 4FF296
