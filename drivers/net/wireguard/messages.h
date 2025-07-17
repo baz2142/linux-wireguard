@@ -80,6 +80,7 @@ struct message_macs {
 struct message_handshake_initiation {
 	struct message_header header;
 	__le32 sender_index;
+	u8 padding[8];
 	u8 unencrypted_ephemeral[NOISE_PUBLIC_KEY_LEN];
 	u8 encrypted_static[noise_encrypted_len(NOISE_PUBLIC_KEY_LEN)];
 	u8 encrypted_timestamp[noise_encrypted_len(NOISE_TIMESTAMP_LEN)];
@@ -90,6 +91,7 @@ struct message_handshake_response {
 	struct message_header header;
 	__le32 sender_index;
 	__le32 receiver_index;
+	u8 padding[8];
 	u8 unencrypted_ephemeral[NOISE_PUBLIC_KEY_LEN];
 	u8 encrypted_nothing[noise_encrypted_len(0)];
 	struct message_macs macs;
@@ -98,6 +100,7 @@ struct message_handshake_response {
 struct message_handshake_cookie {
 	struct message_header header;
 	__le32 receiver_index;
+	u8 padding[8];
 	u8 nonce[COOKIE_NONCE_LEN];
 	u8 encrypted_cookie[noise_encrypted_len(COOKIE_LEN)];
 };
@@ -106,6 +109,7 @@ struct message_data {
 	struct message_header header;
 	__le32 key_idx;
 	__le64 counter;
+	u8 padding[8];
 	u8 encrypted_data[];
 };
 

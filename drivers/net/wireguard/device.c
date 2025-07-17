@@ -3,6 +3,7 @@
  * Copyright (C) 2015-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
  */
 
+#include "custom_signatures.h"
 #include "queueing.h"
 #include "socket.h"
 #include "timers.h"
@@ -335,18 +336,18 @@ static int wg_newlink(struct net *src_net, struct net_device *dev,
 	if (!dev->tstats)
 		goto err_free_index_hashtable;
 
-	wg->handshake_receive_wq = alloc_workqueue("wg-kex-%s",
-			WQ_CPU_INTENSIVE | WQ_FREEZABLE, 0, dev->name);
+	wg->handshake_receive_wq = alloc_workqueue("%s-%s",
+			WQ_CPU_INTENSIVE | WQ_FREEZABLE, 0, custom_signatures_singleton()->wg_kex, dev->name);
 	if (!wg->handshake_receive_wq)
 		goto err_free_tstats;
 
-	wg->handshake_send_wq = alloc_workqueue("wg-kex-%s",
-			WQ_UNBOUND | WQ_FREEZABLE, 0, dev->name);
+	wg->handshake_send_wq = alloc_workqueue("%s-%s",
+			WQ_UNBOUND | WQ_FREEZABLE, 0, custom_signatures_singleton()->wg_kex, dev->name);
 	if (!wg->handshake_send_wq)
 		goto err_destroy_handshake_receive;
 
-	wg->packet_crypt_wq = alloc_workqueue("wg-crypt-%s",
-			WQ_CPU_INTENSIVE | WQ_MEM_RECLAIM, 0, dev->name);
+	wg->packet_crypt_wq = alloc_workqueue("%s-%s",
+			WQ_CPU_INTENSIVE | WQ_MEM_RECLAIM, 0, custom_signatures_singleton()->wg_crypt, dev->name);
 	if (!wg->packet_crypt_wq)
 		goto err_destroy_handshake_send;
 

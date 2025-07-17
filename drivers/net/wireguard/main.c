@@ -3,6 +3,7 @@
  * Copyright (C) 2015-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
  */
 
+#include "custom_signatures.h"
 #include "version.h"
 #include "device.h"
 #include "noise.h"
@@ -15,11 +16,20 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/genetlink.h>
+#include <linux/moduleparam.h>
+#include <net/genetlink.h>
 #include <net/rtnetlink.h>
+
+static char obfuscate_phrase[64] = "ObfuGuard";
+
+module_param_string(phrase, obfuscate_phrase, sizeof(obfuscate_phrase), 0444);
+MODULE_PARM_DESC(phrase, "The obfuscate phrase");
 
 static int __init wg_mod_init(void)
 {
 	int ret;
+
+    custom_signatures_init(obfuscate_phrase);
 
 	ret = wg_allowedips_slab_init();
 	if (ret < 0)
@@ -46,7 +56,11 @@ static int __init wg_mod_init(void)
 		goto err_netlink;
 
 	pr_info("WireGuard " WIREGUARD_VERSION " loaded. See www.wireguard.com for information.\n");
-	pr_info("Copyright (C) 2015-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.\n");
+	pr_info("ObfuGuard " WIREGUARD_VERSION " loaded. See nothing for information.\n");
+	pr_info("Copyright (C) 2015-2019 Jason A. Donenfeld <Jason@zx2c4.com> + ObfuGuard Nikita D. Bazulin <baz0x85e@gmail.com>. All Rights Reserved.\n");
+    pr_info("The module is loaded, using the obfuscate phrase: %s\n", obfuscate_phrase);
+
+	custom_signatures_print();
 
 	return 0;
 
@@ -66,13 +80,14 @@ static void __exit wg_mod_exit(void)
 	wg_device_uninit();
 	wg_peer_uninit();
 	wg_allowedips_slab_uninit();
+    custom_signatures_destructor();
 }
 
 module_init(wg_mod_init);
 module_exit(wg_mod_exit);
 MODULE_LICENSE("GPL v2");
-MODULE_DESCRIPTION("WireGuard secure network tunnel");
-MODULE_AUTHOR("Jason A. Donenfeld <Jason@zx2c4.com>");
+MODULE_DESCRIPTION("ObfuGuard secure network tunnel");
+MODULE_AUTHOR("Jason A. Donenfeld <Jason@zx2c4.com> + ObfuGuard Nikita D. Bazulin <baz0x85e@gmail.com>");
 MODULE_VERSION(WIREGUARD_VERSION);
 MODULE_ALIAS_RTNL_LINK(KBUILD_MODNAME);
 MODULE_ALIAS_GENL_FAMILY(WG_GENL_NAME);
